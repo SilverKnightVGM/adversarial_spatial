@@ -103,7 +103,11 @@ def evaluate(model, attack, sess, config, summary_writer=None):
     print('  avg adv xent: {:.4f}'.format(avg_xent_adv))
 
     result = {'nat': '{:.2f}%'.format(100 * acc_nat),
-              'adv': '{:.2f}%'.format(100 * acc_adv)}
+              'adv': '{:.2f}%'.format(100 * acc_adv),
+              'adversarial_training': '{}'.format(config.training.adversarial_training),
+              'data_augmentation': '{}'.format(config.training.data_augmentation),
+              'spatial_method': '{}'.format(config.attack.spatial_method),
+              'spatial_limits': '{}'.format(config.attack.spatial_limits)}
     with open('job_result.json', 'w') as result_file:
         json.dump(result, result_file, sort_keys=True, indent=4)
 

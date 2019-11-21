@@ -6,3 +6,9 @@ output
 job_parameters.json
 job_result.json
 .exrc
+run-project.sh
+*.o
+*.e
+output*/
+job_result*.json
+cifar-10-batches-py/

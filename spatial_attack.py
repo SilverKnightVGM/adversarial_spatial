@@ -12,6 +12,13 @@ import numpy as np
 
 from pgd_attack import LinfPGDAttack
 
+# import IPython
+
+def invert_image(x):
+    return (255 - x)
+    
+v_invert_image = np.vectorize(invert_image)
+
 class SpatialAttack:
   def __init__(self, model, config):
     self.model = model
@@ -23,6 +30,7 @@ class SpatialAttack:
         self.linf_attack = None
 
     self.use_spatial = config.use_spatial
+    self.invert = config.invert
     if config.use_spatial:
         self.method = config.spatial_method
         self.limits = config.spatial_limits
@@ -30,6 +38,8 @@ class SpatialAttack:
         if self.method == 'grid':
             self.granularity = config.grid_granularity
         elif self.method == 'random':
+            self.random_tries = config.random_tries
+        elif self.method == 'max':
             self.random_tries = config.random_tries
 
   def perturb(self, x_nat, y, sess):
@@ -62,16 +72,26 @@ class SpatialAttack:
 
     for tx, ty, r in grid:
         if random_tries > 0:
-            # randomize each example separately
-            t = np.stack((np.random.uniform(-l, l, n) for l in self.limits),
-                         axis=1)
+            if self.method == 'max':
+                #In config, specify limits as [0 0 90] for 0 translation, 
+                #but 90 rotation (either 0 or 90 is selected, nothing in between)
+                t = np.stack((np.random.randint(0, 1+1, n)*l for l in self.limits),
+                             axis=1)
+            else:
+                # randomize each example separately
+                t = np.stack((np.random.uniform(-l, l, n) for l in self.limits),
+                             axis=1)
         else:
             t = np.stack(repeat([tx, ty, r], n))
 
         if self.linf_attack:
             x = self.linf_attack.perturb(x_nat, y, sess, trans=t)
         else:
-            x = x_nat
+            if self.invert:
+                # IPython.embed()
+                x = v_invert_image(x_nat)
+            else:
+                x = x_nat
 
         curr_dict = {self.model.x_input: x,
                      self.model.y_input: y,
