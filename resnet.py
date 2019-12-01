@@ -15,6 +15,8 @@ class Model(object):
     self._build_model(config.filters,
                       pad_mode=config.pad_mode,
                       pad_size=config.pad_size)
+                      
+    tf.logging.set_verbosity(tf.logging.DEBUG)
 
   def add_internal_summaries(self):
     pass
@@ -53,6 +55,7 @@ class Model(object):
       x = tf.map_fn(lambda img: tf.image.per_image_standardization(img), x)
 
       x = self._conv('init_conv', x, 3, 3, 16, self._stride_arr(1))
+      self.x_init_conv = x
 
     strides = [1, 2, 2]
     activate_before_residual = [True, False, False]
@@ -134,11 +137,13 @@ class Model(object):
 
     with tf.variable_scope('sub1'):
       x = self._conv('conv1', x, 3, in_filter, out_filter, stride)
+      self.x_conv1 = x
 
     with tf.variable_scope('sub2'):
       x = self._batch_norm('bn2', x)
       x = self._relu(x, 0.1)
       x = self._conv('conv2', x, 3, out_filter, out_filter, [1, 1, 1, 1])
+      self.x_conv2 = x
 
     with tf.variable_scope('sub_add'):
       if in_filter != out_filter:

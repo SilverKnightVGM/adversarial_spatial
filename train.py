@@ -24,6 +24,63 @@ import resnet
 from spatial_attack import SpatialAttack
 import utilities
 
+from math import sqrt
+import IPython
+
+def put_kernels_on_grid (kernel, pad = 1):
+
+  '''Visualize conv. filters as an image (mostly for the 1st layer).
+  Arranges filters into a grid, with some paddings between adjacent filters.
+  Args:
+    kernel:            tensor of shape [Y, X, NumChannels, NumKernels]
+    pad:               number of black pixels around each filter (between them)
+  Return:
+    Tensor of shape [1, (Y+2*pad)*grid_Y, (X+2*pad)*grid_X, NumChannels].
+  '''
+  # get shape of the grid. NumKernels == grid_Y * grid_X
+  def factorization(n):
+    for i in range(int(sqrt(float(n))), 0, -1):
+      if n % i == 0:
+        if i == 1: print('Who would enter a prime number of filters')
+        return (i, int(n / i))
+  (grid_Y, grid_X) = factorization (kernel.get_shape()[3].value)
+  print ('grid: %d = (%d, %d)' % (kernel.get_shape()[3].value, grid_Y, grid_X))
+
+  x_min = tf.reduce_min(kernel)
+  x_max = tf.reduce_max(kernel)
+  kernel = (kernel - x_min) / (x_max - x_min)
+
+  # pad X and Y
+  x = tf.pad(kernel, tf.constant( [[pad,pad],[pad, pad],[0,0],[0,0]] ), mode = 'CONSTANT')
+
+  # X and Y dimensions, w.r.t. padding
+  Y = kernel.get_shape()[0] + 2 * pad
+  X = kernel.get_shape()[1] + 2 * pad
+
+  channels = kernel.get_shape()[2]
+
+  # put NumKernels to the 1st dimension
+  x = tf.transpose(x, (3, 0, 1, 2))
+  # organize grid on Y axis
+  # IPython.embed()
+  x = tf.reshape(x, tf.stack([grid_X, Y * grid_Y, X, channels]))
+
+  # switch X and Y axes
+  x = tf.transpose(x, (0, 2, 1, 3))
+  # organize grid on X axis
+  x = tf.reshape(x, tf.stack([1, X * grid_X, Y * grid_Y, channels]))
+
+  # back to normal order (not combining with the next step for clarity)
+  x = tf.transpose(x, (2, 1, 3, 0))
+
+  # to tf.image_summary order [batch_size, height, width, channels],
+  #   where in this case batch_size == 1
+  x = tf.transpose(x, (3, 0, 1, 2))
+
+  # scaling to [0, 255] is not necessary for tensorboard
+  return x
+
+
 def train(config):
     # seeding randomness
     tf.set_random_seed(config.training.tf_random_seed)
@@ -92,6 +149,8 @@ def train(config):
                                                         collections=['adv'])
     tf.summary.scalar('xent_adv', model.xent / batch_size, collections=['adv'])
     tf.summary.image('images_adv_train', model.x_image, collections=['adv'])
+    # grid = put_kernels_on_grid (model.x_conv1)
+    # tf.image.summary('conv1/kernels', grid, max_outputs=1, collections=['adv'])
     adv_summaries = tf.summary.merge_all('adv')
 
     tf.summary.scalar('accuracy_nat_train', model.accuracy, collections=['nat'])
@@ -100,8 +159,11 @@ def train(config):
                                                         collections=['nat'])
     tf.summary.scalar('xent_nat', model.xent / batch_size, collections=['nat'])
     tf.summary.image('images_nat_train', model.x_image, collections=['nat'])
+    # grid = put_kernels_on_grid (model.x_conv1)
+    # tf.image.summary('conv1/kernels', grid, max_outputs=1, collections=['nat'])
     tf.summary.scalar('learning_rate', learning_rate, collections=['nat'])
     nat_summaries = tf.summary.merge_all('nat')
+    
 
     with tf.Session() as sess:
 
@@ -162,7 +224,21 @@ def train(config):
           summary_writer.add_summary(summary, global_step.eval(sess))
           summary = sess.run(nat_summaries, feed_dict=nat_dict)
           summary_writer.add_summary(summary, global_step.eval(sess))
+          
+        # Visualize conv1 kernels
+        with tf.variable_scope('input/init_conv'):
+            tf.get_variable_scope().reuse_variables()
+            weights = tf.get_variable('DW')
+            grid = put_kernels_on_grid (weights)
+            # IPython.embed()
+            summary_conv = tf.summary.image('conv1/kernels', grid, max_outputs=1)
+            summary = sess.run(summary_conv)
+            summary_writer.add_summary(summary, global_step.eval(sess))
 
+        # print([v.name for v in tf.trainable_variables()])
+        # Desired variable is called "tower_2/filter:0".
+        # var = [v for v in tf.trainable_variables() if v.name == "input/init_conv/DW:0"][0]
+        
         # Write a checkpoint
         if ii % num_checkpoint_steps == 0:
           saver.save(sess,
@@ -175,9 +251,11 @@ def train(config):
         # Actual training step
         start = timer()
         if adversarial_training:
+            print("\n\nADV\n\n")
             adv_dict[model.is_training] = True
             sess.run(train_step, feed_dict=adv_dict)
         else:
+            print("\n\nNAT\n\n")
             nat_dict[model.is_training] = True
             sess.run(train_step, feed_dict=nat_dict)
         end = timer()
