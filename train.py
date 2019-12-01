@@ -25,7 +25,7 @@ from spatial_attack import SpatialAttack
 import utilities
 
 from math import sqrt
-import IPython
+# import IPython
 
 def put_kernels_on_grid (kernel, pad = 1):
 
