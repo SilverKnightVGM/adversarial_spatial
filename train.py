@@ -251,11 +251,11 @@ def train(config):
         # Actual training step
         start = timer()
         if adversarial_training:
-            print("\n\nADV\n\n")
+            # print("\n\nADV\n\n")
             adv_dict[model.is_training] = True
             sess.run(train_step, feed_dict=adv_dict)
         else:
-            print("\n\nNAT\n\n")
+            # print("\n\nNAT\n\n")
             nat_dict[model.is_training] = True
             sess.run(train_step, feed_dict=nat_dict)
         end = timer()
