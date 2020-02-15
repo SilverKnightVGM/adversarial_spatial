@@ -21,6 +21,7 @@ from PIL import Image
 import os
 import re
 from sklearn.preprocessing import LabelEncoder
+import platform
 
 
 class GreebleData(object):
@@ -43,15 +44,23 @@ class GreebleData(object):
 
     """
     def __init__(self, path, greebles_mode):
-        path_train = path + "\\train"
-        path_test = path + "\\test"
+        if (platform.system() == "Windows"):
+            path_train = path + "\\train"
+            path_test = path + "\\test"
+        else:
+            path_train = path + "/train"
+            path_test = path + "/test"
 
         train_filenames = os.listdir(path_train)
         test_filenames = os.listdir(path_test)
 
         # Remove alpha channel from png file, just keep the first 3 channels
-        train_images = np.array([np.array(Image.open(path_train + "\\" + fname))[...,:3] for fname in train_filenames])
-        eval_images = np.array([np.array(Image.open(path_test + "\\" + fname))[...,:3] for fname in test_filenames])
+        if (platform.system() == "Windows"):
+            train_images = np.array([np.array(Image.open(path_train + "\\" + fname))[...,:3] for fname in train_filenames])
+            eval_images = np.array([np.array(Image.open(path_test + "\\" + fname))[...,:3] for fname in test_filenames])
+        else:
+            train_images = np.array([np.array(Image.open(path_train + "/" + fname))[...,:3] for fname in train_filenames])
+            eval_images = np.array([np.array(Image.open(path_test + "/" + fname))[...,:3] for fname in test_filenames])
 
         '''
         File names denote the individual Greeble by defining the specific origin of the body type and parts, as well as its gender.
