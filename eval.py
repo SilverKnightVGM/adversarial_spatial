@@ -25,6 +25,8 @@ import resnet
 from spatial_attack import SpatialAttack
 import utilities
 
+import greebles_input
+
 # A function for evaluating a single checkpoint
 def evaluate(model, attack, sess, config, summary_writer=None):
     num_eval_examples = config.eval.num_eval_examples
@@ -36,7 +38,8 @@ def evaluate(model, attack, sess, config, summary_writer=None):
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
-    cifar = cifar10_input.CIFAR10Data(data_path)
+    # cifar = cifar10_input.CIFAR10Data(data_path)
+    cifar = greebles_input.GreebleData(data_path, 2)
     global_step = tf.contrib.framework.get_or_create_global_step()
     # Iterate over the samples batch-by-batch
     num_batches = int(math.ceil(num_eval_examples / eval_batch_size))

@@ -12,3 +12,4 @@ run-project.sh
 output*/
 job_result*.json
 cifar-10-batches-py/
+images-greebles/

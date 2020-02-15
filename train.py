@@ -19,6 +19,7 @@ import tensorflow.contrib.slim as slim
 from tqdm import trange
 
 import cifar10_input
+import greebles_input
 from eval import evaluate 
 import resnet
 from spatial_attack import SpatialAttack
@@ -104,7 +105,8 @@ def train(config):
 
     # Setting up the data and the model
     data_path = config.data.data_path
-    raw_cifar = cifar10_input.CIFAR10Data(data_path)
+    # raw_cifar = cifar10_input.CIFAR10Data(data_path)
+    raw_cifar = greebles_input.GreebleData(data_path, 2)
     global_step = tf.contrib.framework.get_or_create_global_step()
     model = resnet.Model(config.model)
 
@@ -169,7 +171,8 @@ def train(config):
 
       # initialize data augmentation
       if config.training.data_augmentation:
-          cifar = cifar10_input.AugmentedCIFAR10Data(raw_cifar, sess)
+          # cifar = cifar10_input.AugmentedCIFAR10Data(raw_cifar, sess)
+          cifar = greebles_input.AugmentedGreebleData(raw_cifar, sess)
       else:
           cifar = raw_cifar
 
