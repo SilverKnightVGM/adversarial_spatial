@@ -229,14 +229,14 @@ def train(config):
           summary_writer.add_summary(summary, global_step.eval(sess))
           
         # Visualize conv1 kernels
-        with tf.variable_scope('input/init_conv'):
-            tf.get_variable_scope().reuse_variables()
-            weights = tf.get_variable('DW')
-            grid = put_kernels_on_grid (weights)
-            # IPython.embed()
-            summary_conv = tf.summary.image('init_conv/kernels', grid, max_outputs=1)
-            summary = sess.run(summary_conv)
-            summary_writer.add_summary(summary, global_step.eval(sess))
+        # with tf.variable_scope('input/init_conv'):
+            # tf.get_variable_scope().reuse_variables()
+            # weights = tf.get_variable('DW')
+            # grid = put_kernels_on_grid (weights)
+            # # IPython.embed()
+            # summary_conv = tf.summary.image('init_conv/kernels', grid, max_outputs=1)
+            # summary = sess.run(summary_conv)
+            # summary_writer.add_summary(summary, global_step.eval(sess))
 
         # print([v.name for v in tf.trainable_variables()])
         # Desired variable is called "tower_2/filter:0".
