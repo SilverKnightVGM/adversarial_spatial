@@ -16,7 +16,6 @@ class Model(object):
                       pad_mode=config.pad_mode,
                       pad_size=config.pad_size)
                       
-    tf.logging.set_verbosity(tf.logging.DEBUG)
 
   def add_internal_summaries(self):
     pass

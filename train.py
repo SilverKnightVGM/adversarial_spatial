@@ -167,7 +167,7 @@ def train(config):
     nat_summaries = tf.summary.merge_all('nat')
     
 
-    with tf.Session(config=tf.ConfigProto(log_device_placement=True, allow_soft_placement=True)) as sess:
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
 
       # initialize data augmentation
       if config.training.data_augmentation:
