@@ -7,7 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 #only match the first two regex groups in the file name. Goes from 1 to 4
 greebles_mode = 2
 
-path = r"D:\Users\Enzo\Downloads\greebles-generator-master\images"
+path = r"D:\Users\Enzo\Downloads\greebles-generator-master\images-original"
 path_train = path + "\\train"
 path_test = path + "\\test"
 
@@ -108,3 +108,13 @@ test_labels = np.asarray(le.fit_transform(test_labels_temp))
 # train_filenames[7400]
 # new_im = Image.fromarray(train_images[7400])
 # new_im.save("numpy_altered_sample2.png")
+
+# Get mapping of labels in correct order
+b = list(set(test_labels_temp))
+# >>['f-1', 'f-5', 'f-2', 'm-1', 'm-2', 'm-3', 'm-5', 'm-4', 'f-3', 'f-4']
+a = le.transform(b)
+# >>array([0, 4, 1, 5, 6, 7, 9, 8, 2, 3], dtype=int64)
+actual_mapping = [x for _,x in sorted(zip(a,b))]
+# >>['f-1', 'f-2', 'f-3', 'f-4', 'f-5', 'm-1', 'm-2', 'm-3', 'm-4', 'm-5']
+#   {    0,     1,     2,     3,     4,     5,     6,     7,     8,    9}
+print(actual_mapping)

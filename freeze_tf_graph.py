@@ -28,6 +28,7 @@ def freeze_session(session, keep_var_names=None, output_names=None, clear_device
             for node in input_graph_def.node:
                 node.device = ""
                 
+        # for fixing the bug of batchnorm
         for node in input_graph_def.node:            
             if node.op == 'RefSwitch':
                 node.op = 'Switch'
