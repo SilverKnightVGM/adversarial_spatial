@@ -48,11 +48,28 @@ def freeze_session(session, keep_var_names=None, output_names=None, clear_device
 		
 # trained_checkpoint_prefix = 'models/model.ckpt-49491'
 # trained_checkpoint_prefix = 'GREEBLES/output_inv_train/test/checkpoint-80000'
-trained_checkpoint_prefix = 'output_adv_train_no-invert/test/checkpoint-80000'
-if(str(trained_checkpoint_prefix.split("/")[1]) != 'test'):
-    export_dir = os.path.join('saved_models', str(trained_checkpoint_prefix.split("/")[1]))
+
+# trained_checkpoint_prefix = 'output_adv_train_no-invert/test/checkpoint-80000'
+# trained_checkpoint_prefix = 'GREEBLES/INVERTED_FOLDER_TRAINING/output_inv_greeble_new_params/test/checkpoint-2000'
+# trained_checkpoint_prefix = 'GREEBLES/INVERTED_FOLDER_TRAINING/output_random_base/test/checkpoint-2000'
+trained_checkpoint_prefix = 'GREEBLES/INVERTED_FOLDER_TRAINING/output_random_AT/test/checkpoint-2000'
+
+temp_l = trained_checkpoint_prefix.split("/")
+if 'test' in temp_l: 
+    temp_i = temp_l.index('test')
+    temp_i = max(0,temp_i-1)
+    export_dir = os.path.join('saved_models', str(trained_checkpoint_prefix.split("/")[temp_i]))
 else:
     export_dir = os.path.join('saved_models', str(trained_checkpoint_prefix.split("/")[0]))
+
+
+print("Saving to:", export_dir)
+
+# if(str(trained_checkpoint_prefix.split("/")[1]) != 'test'):
+    # export_dir = os.path.join('saved_models', str(trained_checkpoint_prefix.split("/")[1]))
+# else:
+    # export_dir = os.path.join('saved_models', str(trained_checkpoint_prefix.split("/")[0]))
+
 # output_node_names = "output"
 output_node_names = "costs/SparseSoftmaxCrossEntropyWithLogits/SparseSoftmaxCrossEntropyWithLogits"
 # output_node_names = "map/TensorArrayStack/TensorArrayGatherV3"
@@ -68,4 +85,4 @@ with tf.compat.v1.Session(graph=graph) as sess:
     
             
     frozen_graph = freeze_session(sess, output_names=output_node_names.split(","))
-    tf.train.write_graph(frozen_graph, export_dir, "cifar_softmax.pb", as_text=False)
+    tf.train.write_graph(frozen_graph, export_dir, "saved_model.pb", as_text=False)
