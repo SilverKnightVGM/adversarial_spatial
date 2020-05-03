@@ -9,6 +9,7 @@ import random
 
 import tensorflow as tf
 import numpy as np
+import cv2
 
 from pgd_attack import LinfPGDAttack
 
@@ -18,6 +19,20 @@ def invert_image(x):
     return (255 - x)
     
 v_invert_image = np.vectorize(invert_image)
+
+def canny_image(x):
+    for idx, im in enumerate(x):
+        im = im.astype(np.uint8)
+        can = cv2.Canny(im, 65, 200)
+        x[idx] = np.dstack((can,can,can))
+    return x
+
+def blur_image(x):
+    for idx, im in enumerate(x):
+        im = im.astype(np.uint8)
+        can = cv2.blur(im,(5,5))
+        x[idx] = np.dstack((can,can,can))
+    return x
 
 class SpatialAttack:
   def __init__(self, model, config):
@@ -30,7 +45,7 @@ class SpatialAttack:
         self.linf_attack = None
 
     self.use_spatial = config.use_spatial
-    self.invert = config.invert
+    self.attack_method = config.attack_method
     if config.use_spatial:
         self.method = config.spatial_method
         self.limits = config.spatial_limits
@@ -87,9 +102,11 @@ class SpatialAttack:
         if self.linf_attack:
             x = self.linf_attack.perturb(x_nat, y, sess, trans=t)
         else:
-            if self.invert:
+            if self.attack_method == 'invert':
                 # IPython.embed()
                 x = v_invert_image(x_nat)
+            elif self.attack_method == 'edge':
+                x = canny_image(x_nat)
             else:
                 x = x_nat
 

@@ -31,8 +31,9 @@
 
   "attack": {
       "use_linf": false,
-      "use_spatial": true,
+      "use_spatial": false,
       "invert": true,
+	  "attack_method": "edge",
 
       "loss_function": "xent",
       "epsilon": 8.0,
