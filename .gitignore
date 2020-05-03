@@ -15,3 +15,7 @@ cifar-10-batches-py/
 images-greebles/
 images-flat_range-30deg/
 images-greebles-inv-tt/
+misc_tests/images-keras-original/
+.idea/
+*.h5
+misc_tests/conv2d*/
