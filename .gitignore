@@ -14,3 +14,4 @@ job_result*.json
 cifar-10-batches-py/
 images-greebles/
 images-flat_range-30deg/
+images-greebles-inv-tt/
