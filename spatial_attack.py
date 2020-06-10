@@ -98,7 +98,7 @@ class SpatialAttack:
                 # limits = [[-3,3],[0,3],[20,30]] - within range
                 # limits = [3,[3],[20,30]] - mix, if list_len == 1 do original
                 temp = []
-                for l in limits:
+                for l in self.limits:
                     if isinstance(l, list):
                         if len(l) == 2:
                             temp.append(np.random.uniform(l[0], l[1], n))
