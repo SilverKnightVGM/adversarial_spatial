@@ -93,9 +93,23 @@ class SpatialAttack:
                 t = np.stack((np.random.randint(0, 1+1, n)*l for l in self.limits),
                              axis=1)
             else:
-                # randomize each example separately
-                t = np.stack((np.random.uniform(-l, l, n) for l in self.limits),
-                             axis=1)
+                # Allows to set spatial limits in different ways like:
+                # limits = [3,3,30] - original [low, high) for each element
+                # limits = [[-3,3],[0,3],[20,30]] - within range
+                # limits = [3,[3],[20,30]] - mix, if list_len == 1 do original
+                temp = []
+                for l in limits:
+                    if isinstance(l, list):
+                        if len(l) == 2:
+                            temp.append(np.random.uniform(l[0], l[1], n))
+                        elif len(l) == 1:
+                            temp.append(np.random.uniform(-l[0], l[0], n))
+                        else:
+                            raise ValueError
+                    else:
+                        temp.append(np.random.uniform(-l, l, n))
+
+                t = np.stack(temp, axis=1)
         else:
             t = np.stack(repeat([tx, ty, r], n))
 

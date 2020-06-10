@@ -15,11 +15,11 @@
       "num_eval_steps": 80,
       "num_checkpoint_steps": 80,
       "batch_size": 64,
-      "step_size_schedule": [[0, 0.1], [400, 0.01], [600, 0.001], [2000, 0.0001]],
+      "step_size_schedule": [[0, 0.1], [400, 0.01], [600, 0.001]],
       "momentum": 0.9,
       "weight_decay": 0.0002,
       "eval_during_training": true,
-      "adversarial_training": true,
+      "adversarial_training": false,
       "data_augmentation": true
   },
 
@@ -32,7 +32,7 @@
   "attack": {
       "use_linf": false,
       "use_spatial": true,
-      "attack_method": "edge",
+      "attack_method": "none",
 
       "loss_function": "xent",
       "epsilon": 8.0,

@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 import keras
 from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard
-from tensorflow.keras.applications.resnet50 import preprocess_input
+from keras.applications.vgg16 import preprocess_input, VGG16
 
 # from keras.layers import Dense, Flatten, GlobalAveragePooling2D
 from keras.layers.core import Dense, Flatten
@@ -12,6 +12,7 @@ from keras.layers.pooling import GlobalAveragePooling2D
 
 from keras.models import Model
 from keras.optimizers import Adam, SGD
+
 from keras.preprocessing import image
 from keras.regularizers import l2
 import platform
@@ -76,49 +77,22 @@ if __name__ == "__main__":
     # gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./255, horizontal_flip=True)
     # val_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
     
-    # gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input, horizontal_flip=True)
-    # val_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
+    gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input, horizontal_flip=True)
+    val_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
     
     # Do this also in inference to predict properly
     # gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./138, horizontal_flip=True, shear_range=0.2, zoom_range=0.2)
-    gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./138, horizontal_flip=True)
-    val_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./138)
+    # gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./138, horizontal_flip=True)
+    # val_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./138)
 
     batches = gen.flow_from_directory(TRAIN_DIR, color_mode='rgb', target_size=SIZE, class_mode='categorical', shuffle=True, batch_size=BATCH_SIZE)
     val_batches = val_gen.flow_from_directory(VALID_DIR, color_mode='rgb', target_size=SIZE, class_mode='categorical', shuffle=True, batch_size=BATCH_SIZE)
     
-    # batchX, batchy = batches.next()
-    # print('Batch shape=%s, min=%.3f, max=%.3f' % (batchX.shape, batchX.min(), batchX.max()))
-    # print(np.isnan(batchX).any())
-    # input("STOP")
-
-    # base_model = keras.applications.resnet50.ResNet50(input_shape=INPUT_SHAPE, include_top=False, weights='imagenet')
-    base_model = keras.applications.resnet50.ResNet50(input_shape=INPUT_SHAPE, include_top=False, weights=None)
-    
     classes = list(iter(batches.class_indices))
     print(classes)
-    # input("STOP")
-    # base_model.layers.pop()
-    # for layer in base_model.layers:
-        # layer.trainable = False
-    # last = base_model.layers[-1].output
 
-    # x = Flatten()(last)
-    # x = Dense(len(classes), activation="softmax")(x)
-    # finetuned_model = Model(base_model.input, x)
-    # finetuned_model.summary()
+    finetuned_model = VGG16(input_shape=INPUT_SHAPE, include_top=True, weights=None, classes=len(classes))
     
-    x = base_model.output
-    x = GlobalAveragePooling2D()(x)
-    predictions = Dense(len(classes), activation='softmax')(x)
-    # , W_regularizer=l2(0.01)
-
-    # Freeze initial convolutional layers and only train top ones
-    # for layer in base_model.layers:
-        # layer.trainable = False
-
-    # Combined model
-    finetuned_model = Model(inputs=base_model.input, outputs=predictions)
     finetuned_model.summary()
 
     # finetuned_model.compile(optimizer=Adam(lr=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
@@ -131,8 +105,7 @@ if __name__ == "__main__":
     early_stopping = EarlyStopping(patience=patience_num_epochs)
     tensorboard = TensorBoard(log_dir=os.path.join(base_dir, 'logs'))
     
-    # model_name = 'resnet50_{epoch:03d}.h5'
-    model_name = 'resnet50_best.h5'
+    model_name = 'vgg16_best.h5'
     filepath = os.path.join(base_dir, model_name)
     checkpointer = ModelCheckpoint(filepath=filepath, verbose=1, save_best_only=True)
 
@@ -143,7 +116,7 @@ if __name__ == "__main__":
                                             validation_data=val_batches, 
                                             validation_steps=num_valid_steps,
                                             workers=num_workers)
-    # finetuned_model.save('resnet50_final.h5')
+    
     score = finetuned_model.evaluate_generator(val_batches, steps=num_valid_steps)
 
     print('Test loss:', score[0])

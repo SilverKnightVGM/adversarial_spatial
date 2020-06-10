@@ -76,49 +76,21 @@ if __name__ == "__main__":
     # gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./255, horizontal_flip=True)
     # val_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
     
-    # gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input, horizontal_flip=True)
-    # val_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
+    gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input, horizontal_flip=True)
+    val_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
     
     # Do this also in inference to predict properly
-    # gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./138, horizontal_flip=True, shear_range=0.2, zoom_range=0.2)
-    gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./138, horizontal_flip=True)
-    val_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./138)
+    # gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./138, horizontal_flip=True)
+    # val_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./138)
 
     batches = gen.flow_from_directory(TRAIN_DIR, color_mode='rgb', target_size=SIZE, class_mode='categorical', shuffle=True, batch_size=BATCH_SIZE)
     val_batches = val_gen.flow_from_directory(VALID_DIR, color_mode='rgb', target_size=SIZE, class_mode='categorical', shuffle=True, batch_size=BATCH_SIZE)
     
-    # batchX, batchy = batches.next()
-    # print('Batch shape=%s, min=%.3f, max=%.3f' % (batchX.shape, batchX.min(), batchX.max()))
-    # print(np.isnan(batchX).any())
-    # input("STOP")
-
-    # base_model = keras.applications.resnet50.ResNet50(input_shape=INPUT_SHAPE, include_top=False, weights='imagenet')
-    base_model = keras.applications.resnet50.ResNet50(input_shape=INPUT_SHAPE, include_top=False, weights=None)
-    
     classes = list(iter(batches.class_indices))
     print(classes)
-    # input("STOP")
-    # base_model.layers.pop()
-    # for layer in base_model.layers:
-        # layer.trainable = False
-    # last = base_model.layers[-1].output
 
-    # x = Flatten()(last)
-    # x = Dense(len(classes), activation="softmax")(x)
-    # finetuned_model = Model(base_model.input, x)
-    # finetuned_model.summary()
-    
-    x = base_model.output
-    x = GlobalAveragePooling2D()(x)
-    predictions = Dense(len(classes), activation='softmax')(x)
-    # , W_regularizer=l2(0.01)
+    finetuned_model = keras.applications.resnet50.ResNet50(input_shape=INPUT_SHAPE, include_top=True, weights=None, classes=len(classes))
 
-    # Freeze initial convolutional layers and only train top ones
-    # for layer in base_model.layers:
-        # layer.trainable = False
-
-    # Combined model
-    finetuned_model = Model(inputs=base_model.input, outputs=predictions)
     finetuned_model.summary()
 
     # finetuned_model.compile(optimizer=Adam(lr=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
@@ -131,9 +103,10 @@ if __name__ == "__main__":
     early_stopping = EarlyStopping(patience=patience_num_epochs)
     tensorboard = TensorBoard(log_dir=os.path.join(base_dir, 'logs'))
     
-    # model_name = 'resnet50_{epoch:03d}.h5'
-    model_name = 'resnet50_best.h5'
-    filepath = os.path.join(base_dir, model_name)
+    # model_name = 'resnet50_top_best.h5'
+    # model_name = 'resnet50_top_{epoch:03d}'
+    model_name = 'resnet50_top_best'
+    filepath = os.path.join(base_dir, model_name + ".h5")
     checkpointer = ModelCheckpoint(filepath=filepath, verbose=1, save_best_only=True)
 
     history = finetuned_model.fit_generator(batches, 
@@ -159,9 +132,9 @@ if __name__ == "__main__":
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='best')
-    plt.title('Model Accuracy')
+    plt.title('Model Accuracy ' + model_name)
     # plt.savefig('model_acc.png')
-    plt.savefig(os.path.join(base_dir,'model_acc.png'))
+    plt.savefig(os.path.join(base_dir,'model_acc_{}.png'.format(model_name)))
     plt.figure()
 
     plt.plot(history.history['loss'])
@@ -169,6 +142,6 @@ if __name__ == "__main__":
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='best')
-    plt.title('Model Loss')
+    plt.title('Model Loss ' + model_name)
     # plt.savefig('model_loss.png')
-    plt.savefig(os.path.join(base_dir,'model_loss.png'))
+    plt.savefig(os.path.join(base_dir,'model_loss_{}.png'.format(model_name)))

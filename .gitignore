@@ -19,3 +19,4 @@ misc_tests/images-keras-original/
 .idea/
 *.h5
 misc_tests/conv2d*/
+*.edu
